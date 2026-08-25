@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -)",
+      "Bash(pkill -f \"uvicorn main:app --port 8126\")",
+      "Bash(pkill -f \"vite.*5175\")",
+      "Bash(lsof -iTCP:8126,5175 -sTCP:LISTEN -P)",
+      "Read(//private/tmp/**)",
+      "Bash(lsof -ti:5173 -sTCP:LISTEN)",
+      "Bash(git -C /Users/binoykanchanwala/Developer/bazaar status)",
+      "Bash(/Users/binoykanchanwala/Developer/bazaar/.venv/bin/pip --version)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(/Users/binoykanchanwala/Developer/bazaar/.venv/bin/uvicorn --version)",
+      "Bash(/Users/binoykanchanwala/Developer/bazaar/.venv/bin/uvicorn main:app --port 8123)",
+      "Read(//tmp/**)",
+      "Bash(curl -sv http://127.0.0.1:8123/docs)",
+      "Bash(pkill -f \"uvicorn main:app\")",
+      "Bash(pkill -f \"uvicorn main:app\" 2>/dev/null; rm -f /tmp/uvicorn_test.log /tmp/uvicorn_test2.log; true)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
+    ]
+  }
+}

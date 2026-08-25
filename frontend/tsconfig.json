@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    /* Target modern browsers — ES2020 supports async/await natively */
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+
+    /* Include browser DOM types + modern JS lib types */
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    /* Use ES modules (import/export) */
+    "module": "ESNext",
+
+    /* Let Vite handle module resolution — don't need tsc to resolve files */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    /* tsc only type-checks; Vite does the actual bundling */
+    "noEmit": true,
+
+    /* Enable JSX — react-jsx uses the new transform (no React import needed) */
+    "jsx": "react-jsx",
+
+    /* Strict mode: catches the most bugs */
+    "strict": true,
+
+    /* Relaxed for a learning project — set to true when comfortable with TS */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Allow default imports from CommonJS modules (e.g. axios) */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    /* Skip type-checking inside node_modules — much faster */
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
