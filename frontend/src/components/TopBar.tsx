@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X, Sun, Moon } from 'lucide-react';
+import { Search, X, Sun, Moon, LogOut, User as UserIcon } from 'lucide-react';
 import { companiesAPI } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import type { TickerSearchResult } from '../types';
 
 // Map URL paths to page titles
@@ -28,6 +29,7 @@ export default function TopBar({ theme, onToggleTheme }: TopBarProps): React.JSX
   const location = useLocation();
   const navigate = useNavigate();
   const title    = PAGE_TITLES[location.pathname] ?? 'Bazaar';
+  const { user, signOut } = useAuth();
 
   // React.FormEvent<HTMLFormElement> is the TypeScript type for a form submit event
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
@@ -108,6 +110,34 @@ export default function TopBar({ theme, onToggleTheme }: TopBarProps): React.JSX
         >
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
+
+        {/* Auth: sign in button, or signed-in user + sign out */}
+        {user ? (
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-ink2">
+              <UserIcon size={13} />
+              {user.email}
+            </span>
+            <button
+              type="button"
+              onClick={signOut}
+              title="Sign out"
+              className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100
+                         dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500
+                       text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+          >
+            Sign in
+          </button>
+        )}
 
         {/* Search result dropdown */}
         {(result ?? error) && (

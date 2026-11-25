@@ -11,6 +11,7 @@
  */
 
 import axios from 'axios';
+import { supabase } from '../lib/supabaseClient';
 import type {
   Company,
   AddToWatchlistResponse,
@@ -28,6 +29,17 @@ const API = axios.create({
   timeout: 90_000,   // 90s — index scans with 20+ stocks can be slow
 });
 
+// Attach the signed-in user's token when there is one. Guests simply send
+// no Authorization header — every existing route still works unauthenticated.
+API.interceptors.request.use(async (config) => {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // ── Screener filter params (shared shape) ────────────────────────
 interface ScreenerParams {
   days?:            number;
@@ -39,6 +51,13 @@ interface ScreenerParams {
 interface IndexScreenerParams extends ScreenerParams {
   limit?: number;
 }
+
+// ── Auth ─────────────────────────────────────────────────────────
+export const authAPI = {
+  // Confirms the backend accepts the current Supabase session's token.
+  getMe: () =>
+    API.get<{ id: string; email: string | null }>('/auth/me'),
+};
 
 // ── Companies & Watchlist ────────────────────────────────────────
 export const companiesAPI = {

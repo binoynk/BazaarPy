@@ -15,9 +15,9 @@ Modernized Python rewrite of the original Bazaar Windows Forms (.NET) applicatio
 
 ## Stack
 
-**Backend:** FastAPI · SQLAlchemy async · asyncpg · PostgreSQL (Supabase) · yfinance
+**Backend:** FastAPI · SQLAlchemy async · asyncpg · PostgreSQL (Supabase) · yfinance · Supabase Auth (JWT verification)
 
-**Frontend:** React 18 · Vite · Tailwind CSS · React Router · Recharts
+**Frontend:** React 18 · Vite · Tailwind CSS · React Router · Recharts · Supabase JS (auth)
 
 **Hosting:** Vercel (frontend, free) · Fly.io or Railway (backend, ~$1–2/mo) · Supabase (DB, free)
 
@@ -29,6 +29,8 @@ Modernized Python rewrite of the original Bazaar Windows Forms (.NET) applicatio
 - ✅ Percentage change filtering
 - ✅ Watchlist management
 - ✅ Market index scanning: TSX · NASDAQ · NYSE · NSE · BSE
+- ✅ Sign in (email/password or Google) — guests can still browse everything;
+  signing in is the foundation for upcoming per-user portfolios
 
 ## Quick Start
 
@@ -41,11 +43,13 @@ what to do if you moved this project from OneDrive/iCloud/Dropbox — the
 python -m venv .venv && source .venv/bin/activate
 cd backend
 pip install -r requirements.txt
-cp .env.example .env   # Fill in your Supabase DATABASE_URL
+cp .env.example .env   # Fill in your Supabase DATABASE_URL + SUPABASE_JWT_SECRET
 uvicorn main:app --reload
 
 # Frontend (new terminal)
-cd frontend && npm install && npm run dev
+cd frontend && npm install
+cp .env.example .env   # Fill in your Supabase VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+npm run dev
 ```
 
 Open http://localhost:5173
@@ -70,16 +74,19 @@ bazaar/
 ├── backend/
 │   ├── main.py                  ← FastAPI app + CORS + startup
 │   ├── database.py              ← PostgreSQL async connection
+│   ├── auth.py                  ← Supabase JWT verification
 │   ├── models/                  ← ORM tables + Pydantic schemas
-│   ├── routers/                 ← HTTP endpoints (thin layer)
+│   ├── routers/                 ← HTTP endpoints (thin layer), incl. auth
 │   ├── services/                ← Business logic + yfinance
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
 │       ├── App.jsx              ← Shell layout (sidebar + main)
 │       ├── api/client.js        ← All API calls in one place
+│       ├── lib/supabaseClient.ts    ← Supabase JS client
+│       ├── context/AuthContext.tsx  ← useAuth() session state
 │       ├── components/          ← Sidebar, TopBar, StockCard, etc.
-│       └── pages/               ← Dashboard, Watchlist, Screener
+│       └── pages/               ← Dashboard, Watchlist, Screener, Login
 ├── deploy/
 │   ├── Dockerfile
 │   ├── fly.toml                 ← Fly.io config

@@ -256,3 +256,45 @@ React receives JSON → sets results state → re-renders StockCard grid
 The key file is `frontend/src/api/client.js` — all API calls live there.
 Components never call `fetch()` directly. This means if the backend URL
 changes (e.g. when deploying), you update **one file**, not every component.
+
+---
+
+## 11. Auth via a FastAPI Dependency — `auth.py`
+
+Bazaar doesn't run its own login system. Sign-in happens **client-side**,
+directly between the browser and Supabase Auth — the FastAPI backend never
+sees a password, it only ever sees the JWT Supabase issued afterwards.
+
+```
+Browser (Supabase JS)                FastAPI backend
+──────────────────────                ─────────────────────
+supabase.auth.signInWithPassword()
+     ↓
+Supabase Auth verifies credentials,
+returns a JWT
+     ↓
+Every axios request attaches:
+  Authorization: Bearer <JWT>   →    auth.py verifies the JWT's signature
+                                      using SUPABASE_JWT_SECRET (no network
+                                      call back to Supabase needed)
+                                          ↓
+                                      Depends(get_current_user) hands the
+                                      route a CurrentUser(id, email)
+```
+
+This is the same `Depends()` pattern `get_db` uses for database sessions —
+FastAPI dependencies aren't just for shared setup/teardown, they're also how
+you express "this route needs an authenticated caller":
+
+```python
+@router.get("/me")
+async def get_me(current_user: CurrentUser = Depends(get_current_user)):
+    return current_user   # 401 already handled before this line runs
+```
+
+For routes guests should still be able to hit, `get_current_user_optional`
+does the same JWT check but returns `None` instead of raising 401 when
+there's no token — see `backend/auth.py`. None of the existing
+screener/watchlist routes use it yet (they're guest-open with no auth check
+at all), but it's there for future routes that behave differently for a
+signed-in user vs. a guest (e.g. a future "my portfolio" endpoint).

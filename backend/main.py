@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 import os
 
 from database import create_tables
-from routers import companies, prices, screener
+from routers import auth, companies, prices, screener
 
 load_dotenv()
 
@@ -74,6 +74,7 @@ app.add_middleware(
 # ── Register routers ─────────────────────────────────────────────
 # Each router is a group of related endpoints.
 # The prefix is prepended to every route in that router.
+app.include_router(auth.router,      prefix="/api/auth",      tags=["Auth"])
 app.include_router(companies.router, prefix="/api/companies", tags=["Watchlist"])
 app.include_router(prices.router,    prefix="/api/prices",    tags=["Prices"])
 app.include_router(screener.router,  prefix="/api/screener",  tags=["Screener"])

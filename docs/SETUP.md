@@ -103,6 +103,37 @@ postgresql+asyncpg://postgres:[YOUR-PASSWORD]@db.xxxx.supabase.co:5432/postgres?
 When the FastAPI app starts, it calls `create_tables()` which runs
 `CREATE TABLE IF NOT EXISTS` for all models. No manual SQL needed.
 
+### 2d. Enable Supabase Auth (sign in / sign up)
+
+Bazaar uses **Supabase Auth** for sign-in — separate from the Postgres
+database you just set up in 2a–2c, but in the same Supabase project. Guests
+can still browse everything without an account; auth is only needed for
+features that will save something to *your* account (portfolios, coming in a
+later update).
+
+1. In your Supabase project → **Authentication** → **Providers**:
+   - **Email** is on by default — leave it enabled for email/password sign-up.
+   - Enable **Google**: you'll need a Google OAuth Client ID/Secret from the
+     [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+     (OAuth consent screen → Credentials → Create OAuth client ID → Web
+     application). Set the **Authorized redirect URI** Google asks for to the
+     callback URL Supabase shows you on this same Providers page, then paste
+     the resulting Client ID/Secret into Supabase and Save.
+2. In **Authentication** → **URL Configuration**, set **Site URL** to
+   `http://localhost:5173` for local dev (add your deployed frontend URL here
+   too once you deploy).
+3. Grab your keys:
+   - **Settings** → **API** → **Project URL** and **anon public** key → go
+     into `frontend/.env` (see Step 4 below).
+   - **Settings** → **API** → **JWT Secret** → goes into `backend/.env` as
+     `SUPABASE_JWT_SECRET` (Step 3a below). This is what the backend uses to
+     verify the token Supabase issues on sign-in — it never calls out to
+     Supabase over the network to check it.
+
+> ⚠️ The anon key is safe to ship to the browser. The JWT Secret is **not** —
+> keep it only in `backend/.env`, never in frontend code or `VITE_`-prefixed
+> variables.
+
 ---
 
 ## Step 3 — Backend Setup
@@ -134,12 +165,14 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Open .env in your editor and fill in:
-#   DATABASE_URL = your Supabase connection string from Step 2
+#   DATABASE_URL       = your Supabase connection string from Step 2
+#   SUPABASE_JWT_SECRET = your Supabase JWT secret from Step 2d
 ```
 
 Your `.env` should look like:
 ```
 DATABASE_URL=postgresql+asyncpg://postgres:mysecretpassword@db.xxxx.supabase.co:5432/postgres?ssl=require
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
 APP_ENV=development
 FRONTEND_URL=http://localhost:5173
 ```
@@ -173,6 +206,10 @@ cd frontend
 # Install Node.js packages
 npm install
 
+# Configure environment variables
+cp .env.example .env
+# Open .env and fill in VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY from Step 2d
+
 # Start the Vite dev server
 npm run dev
 ```
@@ -193,6 +230,11 @@ Open http://localhost:5173 — the Bazaar app is running!
 2. **Add a TSX stock:** type `SHOP.TO` → select `TSX` → Add
 3. **Run screener:** Go to Screener → My Watchlist → Run Screener
 4. **Scan an index:** Screener → Scan Index → select NASDAQ → Run Screener
+5. **Sign in:** Click **Sign in** in the top bar → sign up with email/password
+   (Supabase emails you a confirmation link) or **Continue with Google**. Once
+   signed in you'll see your email in the top bar and a sign-out button.
+   Everything else keeps working exactly the same whether you're signed in or
+   browsing as a guest.
 
 > ⏱ First screener run may take 30–60 seconds — yfinance is fetching live data from Yahoo Finance.
 
@@ -205,17 +247,20 @@ bazaar/
 ├── backend/               ← Python FastAPI API
 │   ├── main.py            ← App entry point
 │   ├── database.py        ← PostgreSQL connection
+│   ├── auth.py            ← Supabase JWT verification (get_current_user)
 │   ├── models/            ← Table definitions + data shapes
-│   ├── routers/           ← API endpoints (HTTP layer only)
+│   ├── routers/           ← API endpoints (HTTP layer only), incl. auth.py
 │   ├── services/          ← Business logic (screener math, yfinance)
 │   └── requirements.txt
 │
 ├── frontend/              ← React + Vite + Tailwind UI
 │   ├── src/
 │   │   ├── App.jsx        ← Shell layout (sidebar + main content)
-│   │   ├── api/client.js  ← All API calls in one place
+│   │   ├── api/client.js  ← All API calls in one place (attaches auth token)
+│   │   ├── lib/supabaseClient.ts   ← Supabase JS client
+│   │   ├── context/AuthContext.tsx ← useAuth() — session state, sign in/out
 │   │   ├── components/    ← Reusable UI pieces
-│   │   └── pages/         ← Dashboard, Watchlist, Screener
+│   │   └── pages/         ← Dashboard, Watchlist, Screener, Login
 │   └── package.json
 │
 ├── deploy/                ← Hosting config files
@@ -236,8 +281,14 @@ bazaar/
 ```bash
 cd frontend
 npm run build          # Creates dist/ folder
-# Push to GitHub, then import repo at vercel.com — zero config needed
+# Push to GitHub, then import repo at vercel.com
+# In Vercel's project settings → Environment Variables, add:
+#   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
 ```
+
+Also add your deployed Vercel URL to Supabase → Authentication → URL
+Configuration → Site URL (or Redirect URLs), or Google OAuth sign-in will
+redirect back to `localhost` instead of your live site.
 
 ### Backend → Fly.io (~$1-2/month)
 ```bash
@@ -248,6 +299,7 @@ cp ../deploy/fly.toml .
 
 fly launch             # First time — creates the app
 fly secrets set DATABASE_URL="postgresql+asyncpg://..."
+fly secrets set SUPABASE_JWT_SECRET="..."
 fly secrets set FRONTEND_URL="https://your-app.vercel.app"
 fly deploy             # Subsequent deploys
 ```
@@ -265,6 +317,19 @@ fly deploy             # Subsequent deploys
 
 **`DATABASE_URL is not set`**
 → You haven't created the `.env` file yet. Run `cp .env.example .env` and fill it in.
+
+**`SUPABASE_JWT_SECRET is not set!`**
+→ Same fix as above, plus grab the JWT Secret from Supabase → Settings → API
+(Step 2d) and put it in `backend/.env`.
+
+**`Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY`**
+→ You haven't created `frontend/.env` yet. Run `cp frontend/.env.example
+frontend/.env` and fill in the Project URL / anon key from Step 2d.
+
+**Sign-in works but `/api/auth/me` (or a future protected route) returns 401**
+→ The JWT Supabase issued won't verify against a `SUPABASE_JWT_SECRET` that
+doesn't match your project — double check you copied the secret from the same
+Supabase project the frontend is pointed at.
 
 **`connection refused` on port 8000**
 → The backend isn't running. Start it with `uvicorn main:app --reload` in the `backend/` folder.
