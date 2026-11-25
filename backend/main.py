@@ -78,6 +78,12 @@ app.include_router(companies.router, prefix="/api/companies", tags=["Watchlist"]
 app.include_router(prices.router,    prefix="/api/prices",    tags=["Prices"])
 app.include_router(screener.router,  prefix="/api/screener",  tags=["Screener"])
 
+# Optional LLM agent (see backend/agent/). Off unless AGENT_ENABLED=true in .env,
+# and imported lazily so the app never loads agent code when it's disabled.
+if os.getenv("AGENT_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on"):
+    from agent.router import router as agent_router
+    app.include_router(agent_router, prefix="/api/agent", tags=["Agent (experimental)"])
+
 
 # ── Health check ─────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
