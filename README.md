@@ -29,6 +29,7 @@ Modernized Python rewrite of the original Bazaar Windows Forms (.NET) applicatio
 - ✅ Percentage change filtering
 - ✅ Watchlist management
 - ✅ Market index scanning: TSX · NASDAQ · NYSE · NSE · BSE
+- 🧪 **Ask Bazaar** — optional LLM agent that answers plain-English questions about a stock's technical position (experimental, off by default)
 
 ## Quick Start
 
@@ -52,6 +53,26 @@ Open http://localhost:5173
 
 API docs: http://localhost:8000/docs
 
+### Optional: Ask Bazaar (LLM agent)
+
+Off by default. To try it, run a local model server (e.g. [Ollama](https://ollama.com)):
+
+```bash
+ollama pull llama3.1:8b
+ollama serve
+```
+
+Then set in `backend/.env`:
+
+```
+AGENT_ENABLED=true
+AGENT_BASE_URL=http://localhost:11434/v1
+AGENT_MODEL=llama3.1:8b
+```
+
+Restart the backend and open the **Ask Bazaar** tab in the nav. It's read-only —
+the model can only call the existing screener, never write to the database.
+
 ## Learning This Codebase
 
 See **[docs/CONCEPTS.md](docs/CONCEPTS.md)** for explanations of:
@@ -73,13 +94,14 @@ bazaar/
 │   ├── models/                  ← ORM tables + Pydantic schemas
 │   ├── routers/                 ← HTTP endpoints (thin layer)
 │   ├── services/                ← Business logic + yfinance
+│   ├── agent/                   ← Optional LLM agent (self-contained, off by default)
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
-│       ├── App.jsx              ← Shell layout (sidebar + main)
-│       ├── api/client.js        ← All API calls in one place
+│       ├── App.tsx              ← Shell layout (sidebar + main)
+│       ├── api/client.ts        ← All API calls in one place
 │       ├── components/          ← Sidebar, TopBar, StockCard, etc.
-│       └── pages/               ← Dashboard, Watchlist, Screener
+│       └── pages/               ← Dashboard, Watchlist, Screener, AgentPage
 ├── deploy/
 │   ├── Dockerfile
 │   ├── fly.toml                 ← Fly.io config
