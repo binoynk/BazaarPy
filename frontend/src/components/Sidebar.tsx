@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { TrendingUp, LayoutDashboard, Star, Zap, type LucideIcon } from 'lucide-react';
+import { TrendingUp, LayoutDashboard, Star, Zap, Sparkles, type LucideIcon } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────
 interface NavItem {
@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
   { to: '/watchlist', label: 'Watchlist', icon: Star },
   { to: '/screener',  label: 'Screener',  icon: Zap },
+  { to: '/agent',     label: 'Ask Bazaar', icon: Sparkles },
 ];
 
 const MARKETS: string[] = ['TSX', 'NASDAQ', 'NYSE', 'NSE', 'BSE'];

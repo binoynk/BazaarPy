@@ -13,6 +13,13 @@
  *   These are both different: null means explicitly absent; undefined means not set.
  */
 
+export interface AgentAskResponse {
+  answer: string;
+  steps:  number;
+  trace:  { step: number; tool: string; arguments: string; result: string }[];
+}
+
+
 // ── Watchlist ────────────────────────────────────────────────────
 
 /** A company stored in PostgreSQL — mirrors CompanyResponse in backend */
@@ -145,6 +152,28 @@ export interface TickerSuggestion {
   name?:      string;
   exchange?:  string;
   quote_type?: string;
+}
+
+/** One tool call the agent made — mirrors a trace entry in POST /api/agent/ask */
+export interface AgentTraceStep {
+  step:      number;
+  tool:      string;
+  arguments: string;
+  result:    string;
+}
+
+/** Response from POST /api/agent/ask — mirrors AskResponse in backend/agent/router.py */
+export interface AgentAskResponse {
+  answer: string;
+  steps:  number;
+  trace:  AgentTraceStep[];
+}
+
+/** One turn in the on-page chat history (local UI state — not from API) */
+export interface AgentChatMessage {
+  role:    'user' | 'assistant';
+  content: string;
+  trace?:  AgentTraceStep[];
 }
 
 // ── UI-only types ────────────────────────────────────────────────

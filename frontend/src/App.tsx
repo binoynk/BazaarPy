@@ -12,6 +12,7 @@ import Dashboard        from './pages/Dashboard';
 import WatchlistPage    from './pages/WatchlistPage';
 import ScreenerPage     from './pages/ScreenerPage';
 import StockHistoryPage from './pages/StockHistoryPage';
+import AgentPage        from './pages/AgentPage';
 import { useTheme }     from './hooks/useTheme';
 
 export default function App(): React.JSX.Element {
@@ -36,6 +37,7 @@ export default function App(): React.JSX.Element {
               <Route path="/watchlist"        element={<WatchlistPage />} />
               <Route path="/screener"         element={<ScreenerPage />} />
               <Route path="/prices/:symbol"   element={<StockHistoryPage />} />
+              <Route path="/agent"            element={<AgentPage />} />
             </Routes>
           </main>
         </div>

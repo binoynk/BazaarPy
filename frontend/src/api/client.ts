@@ -21,6 +21,7 @@ import type {
   WatchlistScreenerResponse,
   IndexScreenerResponse,
   MarketOption,
+  AgentAskResponse,
 } from '../types';
 
 const API = axios.create({
@@ -82,4 +83,12 @@ export const screenerAPI = {
 
   getMarkets: () =>
     API.get<MarketOption[]>('/screener/markets'),
+};
+
+// ── Agent (experimental, behind AGENT_ENABLED on the backend) ─────
+export const agentAPI = {
+  // Longer timeout than the default 90s — an LLM tool-call loop can run slow,
+  // especially on a local Ollama model with no GPU.
+  ask: (question: string) =>
+    API.post<AgentAskResponse>('/agent/ask', { question }, { timeout: 180_000 }),
 };

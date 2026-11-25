@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Star, Zap, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Star, Zap, Sparkles, type LucideIcon } from 'lucide-react';
 
 interface TabItem {
   to:    string;
@@ -11,6 +11,7 @@ const TABS: TabItem[] = [
   { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
   { to: '/watchlist', label: 'Watchlist', icon: Star },
   { to: '/screener',  label: 'Screener',  icon: Zap },
+  { to: '/agent',     label: 'Agent',     icon: Sparkles },
 ];
 
 export default function BottomNav(): React.JSX.Element {
